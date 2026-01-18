@@ -1,0 +1,12 @@
+{
+	"name": "LS_OpenMeteo_HTTP",
+	"properties": {
+		"annotations": [],
+		"type": "HttpServer",
+		"typeProperties": {
+			"url": "https://api.open-meteo.com/v1",
+			"enableServerCertificateValidation": true,
+			"authenticationType": "Anonymous"
+		}
+	}
+}
