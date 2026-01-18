@@ -1,0 +1,22 @@
+{
+	"name": "LS_OpenSky",
+	"properties": {
+		"annotations": [],
+		"type": "RestService",
+		"typeProperties": {
+			"url": "https://opensky-network.org/api",
+			"enableServerCertificateValidation": true,
+			"authenticationType": "OAuth2ClientCredential",
+			"clientId": "avirukth-api-client",
+			"clientSecret": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS_Keyvault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "OpenSky-Client-Secret-v1"
+			},
+			"tokenEndpoint": "https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token"
+		}
+	}
+}
