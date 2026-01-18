@@ -1,0 +1,24 @@
+{
+	"name": "DS_ADLS_Bronze_Weather",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ADLS_Gen2",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Timestamp": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "weather",
+				"fileSystem": "raw"
+			}
+		},
+		"schema": {}
+	}
+}
