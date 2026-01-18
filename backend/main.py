@@ -11,7 +11,10 @@ app = FastAPI()
 # Enable CORS (Allows your Vue app on port 5173 to talk to this API)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"], 
+    allow_origins=[
+        "http://localhost:5173", 
+        "https://aero-stream-virid.vercel.app"
+    ], 
     allow_methods=["*"],
     allow_headers=["*"],
 )
