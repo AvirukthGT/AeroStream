@@ -11,6 +11,13 @@ defineProps({
 });
 
 const emit = defineEmits(['select-flight']);
+
+const getDisplayName = (flight) => {
+  if (flight.callsign && flight.callsign.trim().length > 0) {
+    return flight.callsign;
+  }
+  return flight.icao24 ? flight.icao24.toUpperCase() : 'UNKNOWN';
+};
 </script>
 
 <template>
@@ -27,7 +34,7 @@ const emit = defineEmits(['select-flight']);
       @click="emit('select-flight', flight)"
     >
       <div class="flight-info">
-        <span class="callsign">{{ flight.callsign || flight.icao24 }}</span>
+        <span class="callsign">{{ getDisplayName(flight) }}</span>
         <span class="route">{{ flight.origin_country }}</span>
       </div>
       <div class="flight-score">

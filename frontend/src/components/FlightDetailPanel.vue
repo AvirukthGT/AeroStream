@@ -75,16 +75,23 @@ const weatherText = computed(() => {
               <!-- Diagnostics List -->
               <div class="driver-status inset-panel">
                  <div class="list-header">Predictive Diagnostics</div>
-                 <ul>
-                    <li v-if="fuelWaste">
-                       <span class="warning">⚠ Fuel_Inefficiency</span>
-                       <span class="val">+{{ fuelWaste }} kg/h</span>
+                <ul>
+                    <template v-if="fuelWaste || timeDelay">
+                       <li v-if="fuelWaste" class="diag-item">
+                          <div class="diag-title warning">⚠ High Drag Detected</div>
+                          <div class="diag-desc">Excess consumption: +{{ fuelWaste }} kg/h</div>
+                          <div class="diag-action">> Rec: Check flight level / trim.</div>
+                       </li>
+                       <li v-if="timeDelay" class="diag-item">
+                          <div class="diag-title danger">🗲 Late Arrival Risk</div>
+                          <div class="diag-desc">Projected delay: +{{ timeDelay }} minutes</div>
+                          <div class="diag-action">> Rec: Increase cruise velocity.</div>
+                       </li>
+                    </template>
+                    <li v-else class="diag-item good">
+                       <div class="diag-title">✔ System Nominal</div>
+                       <div class="diag-desc">No predictive errors found.</div>
                     </li>
-                    <li v-if="timeDelay">
-                       <span class="danger">🗲 Late_Arrival_Risk</span>
-                       <span class="val">+{{ timeDelay }} min</span>
-                    </li>
-                    <li v-if="!fuelWaste && !timeDelay">System Optimal.</li>
                  </ul>
               </div>
 
@@ -191,7 +198,11 @@ const weatherText = computed(() => {
 .driver-status { flex: 1; padding: 4px; background: white; height: 100px; overflow-y: auto; }
 .list-header { background: #000080; color: white; padding: 2px; margin-bottom: 2px; }
 ul { list-style: none; padding: 0; margin: 0; }
-li { display: flex; justify-content: space-between; border-bottom: 1px dotted #ccc; }
+li.diag-item { display: block; padding: 4px 0; border-bottom: 1px dotted #ccc; }
+.diag-title { font-weight: bold; font-size: 11px; }
+.diag-desc { }
+.diag-action { font-style: italic; color: navy; padding-left: 8px; font-size: 10px; }
+.good { color: #008000; }
 
 .warning { color: #800000; }
 .danger { color: #ff0000; }

@@ -20,6 +20,14 @@ const barColor = computed(() => {
   return efficiencyPercent.value >= 80 ? '#008000' : '#FF0000';
 });
 
+// Status Text Translation
+const statusText = computed(() => {
+  const score = props.flight?.efficiency_score || 0;
+  if (score >= 100) return 'Over-Performing';
+  if (score >= 80) return 'Optimal';
+  if (score >= 60) return 'Sub-Optimal';
+  return 'Critical Waste';
+});
 </script>
 
 <template>
@@ -27,9 +35,10 @@ const barColor = computed(() => {
     <div v-if="flight">
        <!-- Primary 'CPU Usage' style bar -->
        <div class="monitor-group">
-          <div class="monitor-label">Efficiency: {{ Math.round(efficiencyPercent) }}%</div>
+          <div class="monitor-label">
+             Efficiency: {{ Math.round(efficiencyPercent) }}% - {{ statusText }}
+          </div>
           <div class="bar-container inset-panel">
-             <!-- Repeat blocks for that segmented LED look -->
              <div class="segment-bar" :style="{ width: efficiencyPercent + '%', backgroundColor: barColor }"></div>
           </div>
        </div>
@@ -43,24 +52,28 @@ const barColor = computed(() => {
                 </tr>
              </thead>
              <tbody>
-                <tr>
+                <tr title="Current ground speed of the aircraft">
                    <td>Velocity</td>
                    <td>{{ Math.round(flight.velocity) }} km/h</td>
                 </tr>
-                <tr>
+                <tr title="Expected velocity based on physics model">
                    <td>Physics Est.</td>
                    <td>{{ flight.predicted_velocity ? Math.round(flight.predicted_velocity) + ' km/h' : 'N/A' }}</td>
                 </tr>
-                <tr>
+                <tr title="Headwind component subtracting from velocity">
                    <td>Headwind</td>
                    <td>{{ flight.wind_speed_kmh ? Math.round(flight.wind_speed_kmh) + ' km/h' : '0' }}</td>
                 </tr>
-                <tr>
+                <tr title="Deviation from optimal flight path">
                    <td>Offset Angle</td>
                    <td>{{ flight.wind_offset_angle ? Math.round(flight.wind_offset_angle) + '°' : '0°' }}</td>
                 </tr>
              </tbody>
           </table>
+       </div>
+       
+       <div class="legend-box inset-panel">
+          <span class="info-icon">🛈</span> Efficiency &lt; 80% indicates increased fuel consumption due to wind/weather drag.
        </div>
     </div>
     <div v-else class="no-data">
@@ -121,5 +134,20 @@ td {
   text-align: center;
   color: #808080;
   padding: 10px;
+}
+
+.legend-box {
+  margin-top: 8px;
+  padding: 4px;
+  font-family: 'Tahoma', sans-serif;
+  font-size: 10px;
+  background: #ffffe0;
+  border: 1px solid #808080;
+  color: #404040;
+}
+.info-icon {
+  font-weight: bold;
+  color: navy;
+  margin-right: 4px;
 }
 </style>
