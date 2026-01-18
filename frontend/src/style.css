@@ -1,79 +1,108 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  /* THEME: 2000s LAPTOP (Win2k Classic) */
+  --bg-desktop: #3a6ea5;
+  /* Classic Blue Desktop */
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* Window Chrome */
+  --win-bg: #d4d0c8;
+  /* Classic Grey */
+  --win-text: #000000;
+  --win-border-light: #ffffff;
+  --win-border-dark: #808080;
+  --win-border-darker: #404040;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* Title Bar */
+  --title-bg-active: linear-gradient(to right, #000080, #1084d0);
+  --title-text: #ffffff;
+
+  /* Data Colors (Retro) */
+  --color-good: #008000;
+  --color-bad: #ff0000;
+  --color-neutral: #000080;
+
+  /* Fonts */
+  --font-ui: 'Tahoma', 'Verdana', sans-serif;
+  --font-mono: 'Courier New', monospace;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-.card {
-  padding: 2em;
+  padding: 0;
+  background-color: var(--bg-desktop);
+  color: var(--win-text);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  /* Authentic small size */
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  /* Dotted pattern overlay for authenticity */
+  background-image: radial-gradient(#4a7eb5 1px, transparent 1px);
+  background-size: 4px 4px;
 }
 
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  height: 100%;
+  width: 100%;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+/* 2. REUSABLE 'WINDOW' CLASS (Replaces 'glass-panel') */
+.retro-window {
+  background: var(--win-bg);
+  border: 2px solid;
+  border-color: var(--win-border-light) var(--win-border-darker) var(--win-border-darker) var(--win-border-light);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Inner inset fields (like textboxes or map containers) */
+.inset-panel {
+  border: 2px solid;
+  border-color: var(--win-border-dark) var(--win-border-light) var(--win-border-light) var(--win-border-dark);
+  background: #ffffff;
+  overflow: hidden;
+}
+
+/* Scrollbar (Attempting Retro) */
+::-webkit-scrollbar {
+  width: 16px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--win-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--win-bg);
+  border: 1px solid;
+  border-color: var(--win-border-light) var(--win-border-dark) var(--win-border-dark) var(--win-border-light);
+}
+
+::-webkit-scrollbar-button {
+  background: var(--win-bg);
+  border: 1px solid;
+  border-color: var(--win-border-light) var(--win-border-darker) var(--win-border-darker) var(--win-border-light);
+  height: 16px;
+}
+
+/* Typography map */
+h1 {
+  font-size: 14px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+/* Utility to ensure standard classes map to new look */
+.glass-panel {
+  /* Inherit retro-window styles if class wasn't changed in Vue yet */
+  @extend .retro-window;
 }
