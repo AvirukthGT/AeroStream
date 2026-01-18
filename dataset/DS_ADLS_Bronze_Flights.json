@@ -5,11 +5,20 @@
 			"referenceName": "LS_ADLS_Gen2",
 			"type": "LinkedServiceReference"
 		},
+		"parameters": {
+			"TargetFileName": {
+				"type": "string"
+			}
+		},
 		"annotations": [],
 		"type": "Json",
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().TargetFileName",
+					"type": "Expression"
+				},
 				"folderPath": "flights",
 				"fileSystem": "raw"
 			}
