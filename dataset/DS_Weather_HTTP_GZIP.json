@@ -22,9 +22,6 @@
 					"value": "@concat('forecast?latitude=', dataset().Lat, '&longitude=', dataset().Lon, '&current_weather=true')",
 					"type": "Expression"
 				}
-			},
-			"compression": {
-				"type": "gzip"
 			}
 		},
 		"schema": {}

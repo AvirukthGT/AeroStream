@@ -27,12 +27,13 @@
 							"userProperties": [],
 							"typeProperties": {
 								"source": {
-									"type": "RestSource",
-									"httpRequestTimeout": "00:01:40",
-									"requestInterval": "00.00:00:00.010",
-									"requestMethod": "GET",
-									"paginationRules": {
-										"supportRFC5988": "true"
+									"type": "JsonSource",
+									"storeSettings": {
+										"type": "HttpReadSettings",
+										"requestMethod": "GET"
+									},
+									"formatSettings": {
+										"type": "JsonReadSettings"
 									}
 								},
 								"sink": {
@@ -48,17 +49,11 @@
 							},
 							"inputs": [
 								{
-									"referenceName": "DS_OpenMeteo_Weather",
+									"referenceName": "DS_Weather_HTTP_GZIP",
 									"type": "DatasetReference",
 									"parameters": {
-										"Lat": {
-											"value": "@{item().lat}",
-											"type": "Expression"
-										},
-										"Lon": {
-											"value": "@{item().lon}",
-											"type": "Expression"
-										}
+										"Lat": "@{item().lat}",
+										"Lon": "@{item().lon}"
 									}
 								}
 							],
