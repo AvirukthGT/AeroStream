@@ -5,10 +5,21 @@
 			"referenceName": "LS_OpenMeteo",
 			"type": "LinkedServiceReference"
 		},
+		"parameters": {
+			"Lat": {
+				"type": "string"
+			},
+			"Lon": {
+				"type": "string"
+			}
+		},
 		"annotations": [],
 		"type": "RestResource",
 		"typeProperties": {
-			"relativeUrl": "forecast"
+			"relativeUrl": {
+				"value": "@concat('forecast?latitude=', dataset().Lat, '&longitude=', dataset().Lon, '&current_weather=true')",
+				"type": "Expression"
+			}
 		},
 		"schema": []
 	}
