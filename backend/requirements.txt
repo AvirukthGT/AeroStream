@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+sqlalchemy
+asyncpg
+pydantic
+python-dotenv
+requests
+beautifulsoup4
+playwright
+playwright-stealth
+openai
+python-multipart
+databricks-sql-connector
