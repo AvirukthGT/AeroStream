@@ -1,0 +1,141 @@
+{
+	"name": "PL_Ingest_Weather",
+	"properties": {
+		"activities": [
+			{
+				"name": "LoopCities",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('CityList')",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Get_Weather",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "RestSource",
+									"httpRequestTimeout": "00:01:40",
+									"requestInterval": "00.00:00:00.010",
+									"requestMethod": "GET",
+									"paginationRules": {
+										"supportRFC5988": "true"
+									}
+								},
+								"sink": {
+									"type": "JsonSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "JsonWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_OpenMeteo_Weather",
+									"type": "DatasetReference",
+									"parameters": {
+										"Lat": {
+											"value": "@{item().lat}",
+											"type": "Expression"
+										},
+										"Lon": {
+											"value": "@{item().lon}",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_ADLS_Bronze_Weather",
+									"type": "DatasetReference",
+									"parameters": {
+										"CityCode": {
+											"value": "@{item().city}",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"CityList": {
+				"type": "Array",
+				"defaultValue": [
+					{
+						"city": "MEL",
+						"lat": "-37.81",
+						"lon": "144.96"
+					},
+					{
+						"city": "SYD",
+						"lat": "-33.86",
+						"lon": "151.20"
+					},
+					{
+						"city": "BNE",
+						"lat": "-27.47",
+						"lon": "153.02"
+					},
+					{
+						"city": "PER",
+						"lat": "-31.95",
+						"lon": "115.86"
+					},
+					{
+						"city": "ADL",
+						"lat": "-34.92",
+						"lon": "138.60"
+					},
+					{
+						"city": "CBR",
+						"lat": "-35.28",
+						"lon": "149.13"
+					},
+					{
+						"city": "OOL",
+						"lat": "-28.16",
+						"lon": "153.50"
+					},
+					{
+						"city": "HBA",
+						"lat": "-42.88",
+						"lon": "147.32"
+					},
+					{
+						"city": "DRW",
+						"lat": "-12.46",
+						"lon": "130.84"
+					},
+					{
+						"city": "CNS",
+						"lat": "-16.91",
+						"lon": "145.77"
+					}
+				]
+			}
+		},
+		"annotations": []
+	}
+}

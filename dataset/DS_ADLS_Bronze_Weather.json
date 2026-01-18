@@ -6,9 +6,6 @@
 			"type": "LinkedServiceReference"
 		},
 		"parameters": {
-			"Timestamp": {
-				"type": "string"
-			},
 			"CityCode": {
 				"type": "string"
 			}
