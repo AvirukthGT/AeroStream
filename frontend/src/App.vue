@@ -3,16 +3,34 @@ import { ref, onMounted, computed, watch } from 'vue';
 import TheMap from './components/TheMap.vue';
 import FlightList from './components/FlightList.vue';
 import FlightDetailPanel from './components/FlightDetailPanel.vue'; 
+import BootSequence from './components/BootSequence.vue';
+import SystemLog from './components/SystemLog.vue';
+import AnalyticsPanel from './components/AnalyticsPanel.vue';
+import ShutdownScreen from './components/ShutdownScreen.vue';
 import api from './services/api';
 
 const flights = ref([]);
 const selectedFlight = ref(null);
 const loading = ref(true);
+const booted = ref(false); // Controls boot sequence
+const isShuttingDown = ref(false); // Controls shutdown sequence
 const isDrawerOpen = ref(false);
+
+const handleReboot = () => {
+   isShuttingDown.value = false;
+   booted.value = false; // Triggers BootSequence v-if="!booted"
+   // Reset other states
+   isStartMenuOpen.value = false;
+   showMonitor.value = false;
+   showTerminal.value = false;
+   showAnalytics.value = false;
+};
 
 // Window Management
 const isStartMenuOpen = ref(false);
 const showMonitor = ref(false);
+const showTerminal = ref(false);
+const showAnalytics = ref(false);
 
 // Map Theme Logic
 const theme = ref('cyber');
@@ -68,6 +86,9 @@ const criticalFlights = computed(() => {
   return sortedFlights.value.filter(f => f.efficiency_score < 80);
 });
 
+// Map Data Source (Synced with List Filters)
+const mapFlights = ref([]);
+
 const handleSelectFlight = (flight) => {
   selectedFlight.value = flight;
   if (flight && flight.efficiency_score < 80) {
@@ -94,12 +115,16 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="desktop">
+  <BootSequence v-if="!booted" @complete="booted = true" />
+  <ShutdownScreen v-if="isShuttingDown" @reboot="handleReboot" />
+
+  <div v-else class="desktop">
+    <div class="scanlines"></div>
     <!-- Taskbar -->
     <div class="taskbar">
        <div class="start-btn-wrapper">
          <button class="start-btn" :class="{ active: isStartMenuOpen }" @click="isStartMenuOpen = !isStartMenuOpen">
-            <img src="/vite.svg" style="width:16px; margin-right:4px;" /> Start
+            <span style="font-size:16px; margin-right:4px;">✈</span> Start
          </button>
        </div>
        <div class="divider"></div>
@@ -121,12 +146,20 @@ onMounted(() => {
              <span class="icon">⚠</span> 
              <span class="label">Priority Monitor...</span>
           </div>
+          <div class="start-item" @click="showTerminal = true; isStartMenuOpen = false">
+             <span class="icon">_</span> 
+             <span class="label">System Terminal...</span>
+          </div>
+          <div class="start-item" @click="showAnalytics = true; isStartMenuOpen = false">
+             <span class="icon" style="filter: grayscale(100%) brightness(0);">📉</span> 
+             <span class="label">Fleet Analytics...</span>
+          </div>
           <div class="start-item" @click="loadData(); isStartMenuOpen = false">
              <span class="icon">⟳</span> 
              <span class="label">Refresh Sensors</span>
           </div>
           <hr class="menu-divider">
-          <div class="start-item" @click="isStartMenuOpen = false">
+          <div class="start-item" @click="isShuttingDown = true; isStartMenuOpen = false">
              <span class="icon">x</span> 
              <span class="label">Shut Down</span>
           </div>
@@ -155,6 +188,28 @@ onMounted(() => {
        </div>
     </div>
 
+    <!-- Terminal Window -->
+    <div v-if="showTerminal" class="retro-window monitor-window" style="top:50px; left:300px; height:300px; z-index:2001;">
+       <div class="window-title-bar" style="background:#000080;">
+          <span class="title-text">C:\SYSTEM\LOG.EXE</span>
+          <button class="win-btn" @click="showTerminal = false">×</button>
+       </div>
+       <div class="window-content">
+          <SystemLog :flights="flights" />
+       </div>
+    </div>
+
+    <!-- Analytics Window -->
+    <div v-if="showAnalytics" class="retro-window monitor-window" style="top:150px; left:400px; height:400px; width:400px; z-index:2002;">
+       <div class="window-title-bar" style="background:#008080;">
+          <span class="title-text">Dashboard_Analytics.xls</span>
+          <button class="win-btn" @click="showAnalytics = false">×</button>
+       </div>
+       <div class="window-content">
+          <AnalyticsPanel :flights="flights" />
+       </div>
+    </div>
+
     <main class="grid-layout">
       <!-- Normal Windows (List, Map, Details) -->
       <aside class="retro-window">
@@ -171,8 +226,9 @@ onMounted(() => {
                v-else 
                :flights="sortedFlights" 
                :selected-id="selectedFlight?.icao24"
-               @select-flight="handleSelectFlight" 
-             />
+                @select-flight="handleSelectFlight" 
+                @filter-update="mapFlights = $event"
+              />
         </div>
       </aside>
 
@@ -189,7 +245,7 @@ onMounted(() => {
         </div>
          <div class="window-content inset-panel map-container">
             <TheMap 
-                :flights="flights" 
+                :flights="mapFlights" 
                 :selected-flight-id="selectedFlight?.icao24"
                 @select-flight="handleSelectFlight"
             />
@@ -232,6 +288,25 @@ onMounted(() => {
   padding: 4px;
   gap: 4px;
   background-color: var(--bg-desktop); 
+  position: relative;
+  overflow: hidden;
+}
+
+.scanlines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.1),
+    rgba(0, 0, 0, 0.1) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  z-index: 9999;
 }
 
 /* Taskbar Updates */

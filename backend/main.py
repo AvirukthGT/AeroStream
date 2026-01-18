@@ -26,10 +26,7 @@ def get_flights():
     token = os.getenv("DB_TOKEN")
 
     if not all([server, path, token]):
-        print("MISSING CREDENTIALS:", server, path, "TOKEN_LEN:", len(token) if token else 0)
         raise ValueError("Missing Databricks credentials in .env")
-
-    print(f"Connecting to Databricks: {server}")
 
     connection = sql.connect(
         server_hostname=server,
@@ -39,59 +36,76 @@ def get_flights():
 
     cursor = connection.cursor()
 
-    # 1. Query Presentation Layer (Analyzed Flights)
-    # Filter for Australia and ordered by latest time
+    # ---------------------------------------------------------
+    # FIX 1: Use ROW_NUMBER() to get only the LATEST row per plane
+    # ---------------------------------------------------------
     query_analyzed = """
+    WITH LatestPositions AS (
+        SELECT 
+            t1.icao24, t1.callsign, t1.origin_country, t1.velocity, 
+            t1.predicted_velocity, t1.efficiency_score, t1.request_time_utc,
+            t2.latitude, t2.longitude, t2.baro_altitude,
+            t2.temperature_c, t2.wind_speed_kmh, t2.wind_direction, 
+            t2.plane_heading, t2.wind_offset_angle, t2.weather_code,
+            -- Assign a rank: 1 = Latest, 2 = Previous, etc.
+            ROW_NUMBER() OVER(PARTITION BY t1.icao24 ORDER BY t1.request_time_utc DESC) as rn
+        FROM presentation.flight_predictions t1
+        JOIN presentation.flight_weather_master t2 
+          ON t1.icao24 = t2.icao24 AND t1.request_time_utc = t2.request_time_utc
+    )
     SELECT 
-        t1.icao24, t1.callsign, t1.origin_country, t1.velocity, t1.predicted_velocity, t1.efficiency_score,
-        t2.latitude, t2.longitude, t2.baro_altitude,
-        t2.temperature_c, t2.wind_speed_kmh, t2.wind_direction, t2.plane_heading, t2.wind_offset_angle, t2.weather_code,
+        icao24, callsign, origin_country, velocity, predicted_velocity, efficiency_score,
+        latitude, longitude, baro_altitude,
+        temperature_c, wind_speed_kmh, wind_direction, plane_heading, wind_offset_angle, weather_code,
         CASE 
-            WHEN t1.efficiency_score < 80 THEN 'Inefficient'
+            WHEN efficiency_score < 80 THEN 'Inefficient'
             ELSE 'Optimal'
         END as status
-    FROM presentation.flight_predictions t1
-    JOIN presentation.flight_weather_master t2 
-      ON t1.icao24 = t2.icao24 AND t1.request_time_utc = t2.request_time_utc
-    ORDER BY t1.request_time_utc DESC
-    LIMIT 200
+    FROM LatestPositions
+    WHERE rn = 1  -- Only keep the single latest ping per plane
+    LIMIT 1000    -- Now this limit applies to UNIQUE planes, not rows
     """
+    
     cursor.execute(query_analyzed)
     columns_analyzed = [desc[0] for desc in cursor.description]
-    analyzed_raw = [dict(zip(columns_analyzed, row)) for row in cursor.fetchall()]
+    analyzed_results = [dict(zip(columns_analyzed, row)) for row in cursor.fetchall()]
 
-    # Deduplicate Analyzed (Keep most recent if SQL returned multiple)
-    analyzed_unique = {}
-    for f in analyzed_raw:
-        if f['icao24'] not in analyzed_unique:
-            analyzed_unique[f['icao24']] = f
-    
-    analyzed_results = list(analyzed_unique.values())
-
-    # 2. Query Silver Layer (Raw Global Flights)
-    # Filter for Australia
+    # ---------------------------------------------------------
+    # FIX 2: Do the same for Silver (Raw) to find other planes
+    # ---------------------------------------------------------
     query_raw = """
+    WITH LatestRaw AS (
+        SELECT 
+            icao24, callsign, origin_country, velocity, 
+            latitude, longitude, true_track as plane_heading,
+            baro_altitude, geo_altitude,
+            ROW_NUMBER() OVER(PARTITION BY icao24 ORDER BY request_time_utc DESC) as rn
+        FROM silver.flights_parsed
+    )
     SELECT 
         icao24, callsign, origin_country, velocity, 
-        latitude, longitude, true_track as plane_heading,
+        latitude, longitude, plane_heading,
         baro_altitude, geo_altitude
-    FROM silver.flights_parsed
-    LIMIT 200
+    FROM LatestRaw
+    WHERE rn = 1
+    LIMIT 1000
     """
+    
     cursor.execute(query_raw)
     columns_raw = [desc[0] for desc in cursor.description]
     
-    # Merge / Dedupe Raw against Analyzed
-    # If a flight is already in analyzed_results, skip it in raw (to prefer the enriched version)
-    existing_icaos = set(analyzed_unique.keys())
-    final_results = analyzed_results[:] # Start with enriched
+    # ---------------------------------------------------------
+    # Merge Logic (Preserves your existing logic)
+    # ---------------------------------------------------------
+    existing_icaos = {f['icao24'] for f in analyzed_results}
+    final_results = analyzed_results[:] 
 
     for row in cursor.fetchall():
         flight = dict(zip(columns_raw, row))
         icao = flight['icao24']
         
+        # Only add if we didn't already find it in the "Analyzed" set
         if icao not in existing_icaos:
-            # Add defaults for missing analytics data
             flight.update({
                 "predicted_velocity": None,
                 "efficiency_score": None,
@@ -103,9 +117,10 @@ def get_flights():
                 "status": "Raw" 
             })
             final_results.append(flight)
-            existing_icaos.add(icao) # Prevent dupes within raw list too?
+            existing_icaos.add(icao) 
 
     cursor.close()
     connection.close()
 
+    print(f"Returning {len(final_results)} unique flights to frontend.")
     return final_results
