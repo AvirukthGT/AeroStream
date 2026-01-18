@@ -1,0 +1,9 @@
+{
+	"name": "AeroStream",
+	"location": "australiaeast",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "bcbfe7e4-054a-4e92-9e5a-4a93e647347c",
+		"tenantId": "61a797dd-29be-49ed-8d32-304b7e13e294"
+	}
+}
