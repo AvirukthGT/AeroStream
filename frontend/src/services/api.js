@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// const API_URL = 'https://aerostream.onrender.com/api';
-const API_URL = 'http://localhost:8000/api'; // Dev Backup
+const API_URL = 'https://aerostream.onrender.com/api';
+// const API_URL = 'http://localhost:8000/api'; // Dev Backup
 
 export default {
     async getFlights() {

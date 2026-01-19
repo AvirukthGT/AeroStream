@@ -17,7 +17,12 @@ app.add_middleware(
     ], 
     allow_methods=["*"],
     allow_headers=["*"],
+    allow_headers=["*"],
 )
+
+@app.get("/")
+def health_check():
+    return {"status": "ok", "message": "AeroStream API is running. Access endpoints at /api/flights"}
 
 @app.get("/api/flights")
 def get_flights():
